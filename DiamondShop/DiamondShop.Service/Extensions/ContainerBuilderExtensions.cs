@@ -6,6 +6,7 @@ using MapsterMapper;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
+using Google.Cloud.Storage.V1;
 
 namespace DiamondShop.Service.Extensions
 {
@@ -23,6 +24,11 @@ namespace DiamondShop.Service.Extensions
                 .Where(t => t.Name.EndsWith("Service"))
                 .AsImplementedInterfaces()
                 .InstancePerLifetimeScope();
+            builder.Register(ctx =>
+            {
+                var storageClient = StorageClient.Create();
+                return storageClient;
+            }).SingleInstance();
         }
         
 
