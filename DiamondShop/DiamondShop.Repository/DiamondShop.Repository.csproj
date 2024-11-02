@@ -8,10 +8,11 @@
 
   <ItemGroup>
     <Folder Include="Models\" />
-    <Folder Include="ViewModels\" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Autofac" Version="8.1.1" />
+    <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="10.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.10">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -23,6 +24,12 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Microsoft.AspNetCore.Mvc.Core">
+      <HintPath>C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.5\Microsoft.AspNetCore.Mvc.Core.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

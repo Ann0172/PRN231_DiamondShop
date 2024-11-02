@@ -6,77 +6,141 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using DiamondShop.Repository.Pagination;
+using Microsoft.EntityFrameworkCore.Query;
 
 namespace DiamondShop.Repository.Repositories
 {
     public class GenericRepository<T> : IGenericRepository<T> where T : class
     {
-        private readonly Prn231DiamondShopContext _context;
+        protected readonly DbContext _dbContext;
+        protected readonly DbSet<T> _dbSet;
 
-        public GenericRepository(Prn231DiamondShopContext context)
+        public GenericRepository(DbContext context)
         {
-            _context = context;
+            _dbContext = context;
+            _dbSet = context.Set<T>();
         }
 
-        public IQueryable<T> Entities => _context.Set<T>();
-
-        public Task<T> AddAsync(T TEntity)
+        public void Dispose()
         {
-            _context.Add(TEntity);
-            return Task.FromResult(TEntity);
+            _dbContext?.Dispose();
         }
+        
 
-        public Task DeleteAsync(T TEntity)
+        public virtual async Task<T> SingleOrDefaultAsync(Expression<Func<T, bool>> predicate = null!,
+            Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null!,
+            Func<IQueryable<T>, IIncludableQueryable<T, object>> include = null!)
         {
-            _context.Remove(TEntity);
-            return Task.CompletedTask;
-        }
+            IQueryable<T> query = _dbSet;
+            if (include != null) query = include(query);
 
-        public async Task<List<T>> FindAsync(Expression<Func<T, bool>> expression)
-        {
-            return await _context.Set<T>().Where(expression).ToListAsync();
-        }
+            if (predicate != null) query = query.Where(predicate);
 
-        public async Task<T?> FindOneAsync(Expression<Func<T, bool>> expression, bool hasTrackings = true)
-        {
-            return hasTrackings ? await _context.Set<T>().FirstOrDefaultAsync(expression)
-                                : await _context.Set<T>().AsNoTracking().FirstOrDefaultAsync(expression);
+            if (orderBy != null) return await orderBy(query).AsNoTracking().FirstOrDefaultAsync();
+
+            return await query.AsNoTracking().FirstOrDefaultAsync();
         }
 
-        public async Task<List<T>> GetAllAsync()
+        public virtual async Task<TResult> SingleOrDefaultAsync<TResult>(Expression<Func<T, TResult>> selector,
+            Expression<Func<T, bool>> predicate = null, Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null,
+            Func<IQueryable<T>, IIncludableQueryable<T, object>> include = null)
         {
-            return await _context.Set<T>().ToListAsync();
+            IQueryable<T> query = _dbSet;
+            if (include != null) query = include(query);
+
+            if (predicate != null) query = query.Where(predicate);
+
+            if (orderBy != null) return await orderBy(query).AsNoTracking().Select(selector).FirstOrDefaultAsync();
+
+            return await query.AsNoTracking().Select(selector).FirstOrDefaultAsync();
         }
 
-        public async Task<T?> GetByIdAsync(Guid id)
+        public virtual async Task<ICollection<T>> GetListAsync(Expression<Func<T, bool>> predicate = null,
+            Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null,
+            Func<IQueryable<T>, IIncludableQueryable<T, object>> include = null)
         {
-            return await _context.Set<T>().FindAsync(id);
+            IQueryable<T> query = _dbSet;
+
+            if (include != null) query = include(query);
+
+            if (predicate != null) query = query.Where(predicate);
+
+            if (orderBy != null) return await orderBy(query).AsNoTracking().ToListAsync();
+
+            return await query.AsNoTracking().ToListAsync();
         }
 
-        public Task UpdateAsync(T TEntity)
+        public virtual async Task<ICollection<TResult>> GetListAsync<TResult>(Expression<Func<T, TResult>> selector,
+            Expression<Func<T, bool>> predicate = null, Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null,
+            Func<IQueryable<T>, IIncludableQueryable<T, object>> include = null)
         {
-            _context.Set<T>().Update(TEntity);
-            return Task.CompletedTask;
-        }
-        public async Task<bool> AnyAsync(Expression<Func<T, bool>> expression)
-        {
-            return await _context.Set<T>().AnyAsync(expression);
+            IQueryable<T> query = _dbSet;
+
+            if (include != null) query = include(query);
+
+            if (predicate != null) query = query.Where(predicate);
+
+            if (orderBy != null) return await orderBy(query).AsNoTracking().Select(selector).ToListAsync();
+
+            return await query.Select(selector).ToListAsync();
         }
 
-        public async Task AddRangeAsync(IEnumerable<T> Tentities)
+        public Task<IPaginate<T>> GetPagingListAsync(Expression<Func<T, bool>> predicate = null,
+            Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null,
+            Func<IQueryable<T>, IIncludableQueryable<T, object>> include = null, int page = 1,
+            int size = 10)
         {
-            await _context.Set<T>().AddRangeAsync(Tentities);
+            IQueryable<T> query = _dbSet;
+            if (include != null) query = include(query);
+            if (predicate != null) query = query.Where(predicate);
+            if (orderBy != null) return orderBy(query).ToPaginateAsync(page, size, 1);
+            return query.AsNoTracking().ToPaginateAsync(page, size, 1);
         }
 
-        public async Task<int> CountAsync(Expression<Func<T, bool>> expression)
+        public Task<IPaginate<TResult>> GetPagingListAsync<TResult>(Expression<Func<T, TResult>> selector,
+            Expression<Func<T, bool>> predicate = null, Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null,
+            Func<IQueryable<T>, IIncludableQueryable<T, object>> include = null, int page = 1, int size = 10)
         {
-            return await _context.Set<T>().CountAsync(expression);
+            IQueryable<T> query = _dbSet;
+            if (include != null) query = include(query);
+            if (predicate != null) query = query.Where(predicate);
+            if (orderBy != null) return orderBy(query).Select(selector).ToPaginateAsync(page, size, 1);
+            return query.AsNoTracking().Select(selector).ToPaginateAsync(page, size, 1);
         }
 
-        public Task DeleteRangeAsync(IEnumerable<T> TEntities)
+
+        public async Task<T> InsertAsync(T entity)
         {
-            _context.Set<T>().RemoveRange(TEntities);
-            return Task.CompletedTask;
+            if (entity == null) return null!;
+            await _dbSet.AddAsync(entity);
+            return entity;
         }
+
+        public async Task InsertRangeAsync(IEnumerable<T> entities)
+        {
+            await _dbSet.AddRangeAsync(entities);
+        }
+
+        public void UpdateAsync(T entity)
+        {
+            _dbSet.Update(entity);
+        }
+
+        public void UpdateRange(IEnumerable<T> entities)
+        {
+            _dbSet.UpdateRange(entities);
+        }
+
+        public void DeleteAsync(T entity)
+        {
+            _dbSet.Remove(entity);
+        }
+
+        public void DeleteRangeAsync(IEnumerable<T> entities)
+        {
+            _dbSet.RemoveRange(entities);
+        }
+        
     }
 }

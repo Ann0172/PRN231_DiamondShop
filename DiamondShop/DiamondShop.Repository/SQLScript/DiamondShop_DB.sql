@@ -15,9 +15,9 @@ create table [Account]
 	[Username] [nvarchar](255) NOT NULL,
 	[Password] [nvarchar](255) NOT NULL,
 	[Email] [nvarchar](255) NOT NULL,
-	[PhoneNumber] [nvarchar](255) NOT NULL,
-	[AvatarUrl] [nvarchar](255) NOT NULL,
-	[Address] [nvarchar](255) NOT NULL,
+	[PhoneNumber] [nvarchar](255) NULL,
+	[AvatarUrl] [nvarchar](255) NULL,
+	[Address] [nvarchar](255) NULL,
 	[Role] [nvarchar](255) NOT NULL,
 	[Status] [nvarchar](255) NOT NULL default 'available');
 go

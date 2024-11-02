@@ -16,9 +16,4 @@
     <ProjectReference Include="..\DiamondShop.Shared\DiamondShop.Shared.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Interfaces\" />
-    <Folder Include="Services\" />
-  </ItemGroup>
-
 </Project>

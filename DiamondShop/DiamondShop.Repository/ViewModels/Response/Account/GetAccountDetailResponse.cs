@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿namespace DiamondShop.Repository.ViewModels.Response.Account;
 
-namespace DiamondShop.Repository.Models;
-
-public partial class Account
+public class GetAccountDetailResponse
 {
     public Guid Id { get; set; }
 
@@ -22,10 +19,4 @@ public partial class Account
     public string Role { get; set; } = null!;
 
     public string Status { get; set; } = null!;
-
-    public virtual ICollection<Order> OrderCustomers { get; set; } = new List<Order>();
-
-    public virtual ICollection<Order> OrderDeliveryStaffs { get; set; } = new List<Order>();
-
-    public virtual ICollection<Order> OrderSalesStaffs { get; set; } = new List<Order>();
 }

@@ -4,14 +4,21 @@ using DiamondShop.Repository.Extensions;
 using DiamondShop.Service.Extensions;
 using System.Configuration;
 using System.Text.Json.Serialization;
+using Autofac;
+using Autofac.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
-
+builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
 // Add services to the container.
-var configuration = builder.Configuration;
-builder.Services.AddApiDependencies(configuration)
-                .AddServicesDependency(configuration)
-                .AddRepositoriesDependency();
+builder.Host.ConfigureContainer<ContainerBuilder>(containerBuilder =>
+{
+
+    containerBuilder.AddRepositoriesDependency();
+    containerBuilder.AddServicesDependency(builder.Configuration);
+});
+builder.Services.AddApiDependencies(builder.Configuration);
+//builder.ConfigureAutofacContainer();
+
 builder.Services.AddControllers().AddJsonOptions(options =>
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

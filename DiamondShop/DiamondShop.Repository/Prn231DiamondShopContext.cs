@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using DiamondShop.Repository.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace DiamondShop.Repository;
 
@@ -33,13 +34,21 @@ public partial class Prn231DiamondShopContext : DbContext
     public virtual DbSet<Product> Products { get; set; }
 
     public virtual DbSet<Promotion> Promotions { get; set; }
-
-
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+        => optionsBuilder.UseSqlServer(GetConnectionString());
+    private string GetConnectionString()
+    {
+        IConfiguration config = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json", true, true).Build();
+        return config["ConnectionStrings:DefaultConnection"];
+    }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Account>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Account__3214EC07A42D7653");
+            entity.HasKey(e => e.Id).HasName("PK__Account__3214EC07560C1045");
 
             entity.ToTable("Account");
 
@@ -58,7 +67,7 @@ public partial class Prn231DiamondShopContext : DbContext
 
         modelBuilder.Entity<Category>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Category__3214EC07FAC0ABFC");
+            entity.HasKey(e => e.Id).HasName("PK__Category__3214EC079BCD7EA7");
 
             entity.ToTable("Category");
 
@@ -74,7 +83,7 @@ public partial class Prn231DiamondShopContext : DbContext
 
         modelBuilder.Entity<Certificate>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Certific__3214EC0747D39E1E");
+            entity.HasKey(e => e.Id).HasName("PK__Certific__3214EC077987DB8C");
 
             entity.ToTable("Certificate");
 
@@ -95,11 +104,11 @@ public partial class Prn231DiamondShopContext : DbContext
 
         modelBuilder.Entity<Diamond>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Diamond__3214EC07E8F6F9B2");
+            entity.HasKey(e => e.Id).HasName("PK__Diamond__3214EC07E34DDA8E");
 
             entity.ToTable("Diamond");
 
-            entity.HasIndex(e => e.CertificateId, "UQ__Diamond__BBF8A7C0B454C0A5").IsUnique();
+            entity.HasIndex(e => e.CertificateId, "UQ__Diamond__BBF8A7C085179F3D").IsUnique();
 
             entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
             entity.Property(e => e.CaratWeight).HasMaxLength(50);
@@ -124,7 +133,7 @@ public partial class Prn231DiamondShopContext : DbContext
 
         modelBuilder.Entity<Order>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Order__3214EC0754BE159D");
+            entity.HasKey(e => e.Id).HasName("PK__Order__3214EC077B7D25C8");
 
             entity.ToTable("Order");
 
@@ -148,7 +157,7 @@ public partial class Prn231DiamondShopContext : DbContext
 
         modelBuilder.Entity<OrderDetail>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__OrderDet__3214EC074A34E995");
+            entity.HasKey(e => e.Id).HasName("PK__OrderDet__3214EC074A52BE22");
 
             entity.ToTable("OrderDetail");
 
@@ -167,7 +176,7 @@ public partial class Prn231DiamondShopContext : DbContext
 
         modelBuilder.Entity<Picture>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Picture__3214EC075CF96B5F");
+            entity.HasKey(e => e.Id).HasName("PK__Picture__3214EC071C132EFE");
 
             entity.ToTable("Picture");
 
@@ -184,11 +193,11 @@ public partial class Prn231DiamondShopContext : DbContext
 
         modelBuilder.Entity<Product>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Product__3214EC078C456B8B");
+            entity.HasKey(e => e.Id).HasName("PK__Product__3214EC07B5716AD8");
 
             entity.ToTable("Product");
 
-            entity.HasIndex(e => e.DiamondId, "UQ__Product__23A8E79A65BC81A2").IsUnique();
+            entity.HasIndex(e => e.DiamondId, "UQ__Product__23A8E79A338DDC63").IsUnique();
 
             entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
             entity.Property(e => e.LastUpdate)
@@ -214,7 +223,7 @@ public partial class Prn231DiamondShopContext : DbContext
 
         modelBuilder.Entity<Promotion>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Promotio__3214EC0728121297");
+            entity.HasKey(e => e.Id).HasName("PK__Promotio__3214EC07F9BD469C");
 
             entity.ToTable("Promotion");
 
