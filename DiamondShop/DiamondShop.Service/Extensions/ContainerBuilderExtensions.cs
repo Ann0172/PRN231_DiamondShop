@@ -6,6 +6,8 @@ using MapsterMapper;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
+using DiamondShop.Repository.Models;
+using DiamondShop.Repository.ViewModels.Response.OrderDetail;
 using Google.Cloud.Storage.V1;
 
 namespace DiamondShop.Service.Extensions
@@ -35,6 +37,7 @@ namespace DiamondShop.Service.Extensions
         private static void RegisterMapster(this ContainerBuilder builder)
         {
             var config = new TypeAdapterConfig();
+            TypeAdapterConfig<OrderDetail, GetOrderDetailResponse>.NewConfig();
             config.Scan(Assembly.GetExecutingAssembly());
             
             builder.RegisterInstance(config).AsSelf().SingleInstance();

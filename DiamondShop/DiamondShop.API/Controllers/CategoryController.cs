@@ -19,12 +19,12 @@ namespace DiamondShop.API.Controllers
             _categoryService = categoryService;
         }
         [HttpPost]
-        public async Task<ActionResult<GetCategoryResponse>> CreateCategory([FromBody] CreateCategoryRequest createCategoryRequest)
+        public async Task<ActionResult<GetCategoryDetailResponse>> CreateCategory([FromBody] CreateCategoryRequest createCategoryRequest)
         {
             return Created(nameof(CreateCategory), await _categoryService.CreateCategory(createCategoryRequest));
         }
         [HttpGet]
-        public async Task<ActionResult<Paginate<GetCategoryResponse>>> GetPagedCategories([FromQuery] int page = 1, [FromQuery] int size = 10)
+        public async Task<ActionResult<Paginate<GetCategoryDetailResponse>>> GetPagedCategories([FromQuery] int page = 1, [FromQuery] int size = 10)
         {
             return await _categoryService.GetPagedCategory(page, size);
         }
@@ -35,7 +35,7 @@ namespace DiamondShop.API.Controllers
             return NoContent();
         }
         [HttpGet("{id:guid}")]
-        public async Task<ActionResult<GetCategoryResponse>> GetCategoryById(Guid id)
+        public async Task<ActionResult<GetCategoryDetailResponse>> GetCategoryById(Guid id)
         {
             return await _categoryService.GetCategoryById(id);
         }

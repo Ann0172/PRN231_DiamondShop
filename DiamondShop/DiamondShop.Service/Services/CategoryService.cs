@@ -20,12 +20,12 @@ public class CategoryService : ICategoryService
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<GetCategoryResponse> CreateCategory(CreateCategoryRequest createCategoryRequest)
+    public async Task<GetCategoryDetailResponse> CreateCategory(CreateCategoryRequest createCategoryRequest)
     {
         var category = createCategoryRequest.Adapt<Category>();
         await _unitOfWork.GetRepository<Category>().InsertAsync(category);
         await _unitOfWork.CommitAsync();
-        return category.Adapt<GetCategoryResponse>();
+        return category.Adapt<GetCategoryDetailResponse>();
     }
 
     public async Task UpdateCategory(Guid id, UpdateCategoryRequest updateCategoryRequest)
@@ -34,22 +34,22 @@ public class CategoryService : ICategoryService
                        ?? throw new NotFoundException("Can't find any category with this id");
 
         updateCategoryRequest.Adapt(category);
-        category.LastUpdate = DateTime.Now;
-
+        category.LastUpdate = DateTime.Now; 
+        _unitOfWork.GetRepository<Category>().UpdateAsync(category);
         await _unitOfWork.CommitAsync();
     }
 
-    public async Task<Paginate<GetCategoryResponse>> GetPagedCategory(int page, int size)
+    public async Task<Paginate<GetCategoryDetailResponse>> GetPagedCategory(int page, int size)
     {
         var categories = await _unitOfWork.GetRepository<Category>().GetPagingListAsync(page:page, size: size);
-        return categories.Adapt<Paginate<GetCategoryResponse>>();
+        return categories.Adapt<Paginate<GetCategoryDetailResponse>>();
     }
 
-    public async Task<GetCategoryResponse> GetCategoryById(Guid id)
+    public async Task<GetCategoryDetailResponse> GetCategoryById(Guid id)
     {
         var category = await _unitOfWork.GetRepository<Category>().SingleOrDefaultAsync(predicate:x => x.Id == id)
                        ?? throw new NotFoundException("Can't find any category with this id");
-        return category.Adapt<GetCategoryResponse>();
+        return category.Adapt<GetCategoryDetailResponse>();
     }
 
     public async Task ChangeCategoryStatus(Guid id, CategoryStatus status)
@@ -63,6 +63,7 @@ public class CategoryService : ICategoryService
             _ => category.Status
         };
         category.LastUpdate = DateTime.Now;
+        _unitOfWork.GetRepository<Category>().UpdateAsync(category);
         await _unitOfWork.CommitAsync();
     }
 }

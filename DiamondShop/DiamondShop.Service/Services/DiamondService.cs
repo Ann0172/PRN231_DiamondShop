@@ -55,8 +55,6 @@ public class DiamondService : IDiamondService
             .SingleOrDefaultAsync( predicate: p => p.Id == id
                                     ,include: p => p.Include(x => x.Certificate)
                                                                      .Include(x => x.Pictures));
-        var certificate = await _unitOfWork.GetRepository<Certificate>()
-            .SingleOrDefaultAsync(predicate: x => x.Id == diamond.CertificateId);
         if (diamond is null)
         {
             throw new NotFoundException($"Can't find any diamonds with id {id}");
@@ -67,7 +65,7 @@ public class DiamondService : IDiamondService
         {
             throw new BadRequestException("Another certificate with the same report number already exists");
         }
-        updateDiamondRequest.Adapt(certificate);
+        updateDiamondRequest.Adapt(diamond.Certificate);
         updateDiamondRequest.Adapt(diamond);
         diamond.LastUpdate = DateTime.Now;
         if (diamond.Pictures.Any())
@@ -76,6 +74,8 @@ public class DiamondService : IDiamondService
             
             diamond.Pictures.Clear();
         }
+        _unitOfWork.GetRepository<Certificate>().UpdateAsync(diamond.Certificate);
+        _unitOfWork.GetRepository<Diamond>().UpdateAsync(diamond);
         await _unitOfWork.CommitAsync();
         if (updateDiamondRequest.DiamondImages is not [])
         {
@@ -122,6 +122,8 @@ public class DiamondService : IDiamondService
             DiamondStatus.Unavailable => CertificateStatus.Unavailable.ToString().ToLower(),
             _ => diamond.Certificate.Status
         };
+        _unitOfWork.GetRepository<Diamond>().UpdateAsync(diamond);
+        _unitOfWork.GetRepository<Certificate>().UpdateAsync(diamond.Certificate);
         await _unitOfWork.CommitAsync();
     }
 }

@@ -132,6 +132,11 @@ namespace DiamondShop.Repository.Repositories
             _dbSet.UpdateRange(entities);
         }
 
+        public void Detach(T entity)
+        {
+            _dbSet.Entry(entity).State = EntityState.Detached;
+        }
+
         public void DeleteAsync(T entity)
         {
             _dbSet.Remove(entity);

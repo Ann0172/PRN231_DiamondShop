@@ -44,7 +44,7 @@ namespace DiamondShop.Repository
             TrackChanges();
             return Context.SaveChanges();
         }
-
+    
         public async Task<int> CommitAsync()
         {
             TrackChanges();

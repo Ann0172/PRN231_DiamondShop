@@ -6,8 +6,16 @@ using System.Configuration;
 using System.Text.Json.Serialization;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
+using DiamondShop.Repository.Enums;
+using DiamondShop.Service.Interfaces;
+using DiamondShop.Service.Services;
+using Net.payOS;
 
 var builder = WebApplication.CreateBuilder(args);
+var payOs = new PayOS(builder.Configuration["PayOSConfig:PAYOS_CLIENT_ID"]!,
+    builder.Configuration["PayOSConfig:PAYOS_API_KEY"]!,
+    builder.Configuration["PayOSConfig:PAYOS_CHECKSUM_KEY"]!);
+builder.Services.AddSingleton(payOs);
 builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
 // Add services to the container.
 builder.Host.ConfigureContainer<ContainerBuilder>(containerBuilder =>
@@ -17,6 +25,8 @@ builder.Host.ConfigureContainer<ContainerBuilder>(containerBuilder =>
     containerBuilder.AddServicesDependency(builder.Configuration);
 });
 builder.Services.AddApiDependencies(builder.Configuration);
+
+builder.Services.AddScoped<IOrderService, OrderService>();
 //builder.ConfigureAutofacContainer();
 
 builder.Services.AddControllers().AddJsonOptions(options =>

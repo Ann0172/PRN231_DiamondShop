@@ -58,6 +58,7 @@ namespace DiamondShop.Repository.Interfaces
 
         void UpdateRange(IEnumerable<T> entities);
 
+        void Detach(T entity);
         
         
         void DeleteAsync(T entity);
