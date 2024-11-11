@@ -35,7 +35,7 @@ namespace DiamondShop.API.Controllers
         {
             return await _authService.GetCurrentAccount(HttpContext.User);
         }
-
+        
         
     }
     

@@ -29,7 +29,7 @@ namespace DiamondShop.API.Controllers
             return Created(nameof(CreateOrderWithPayOs), await _orderService.CreateOrderWithPayOs(HttpContext.User, createOrderRequest));
         }
 
-        [HttpPatch("update-status-for-order/{orderId:guid}/{status}")]
+        [HttpPut("update-status-for-order/{orderId:guid}/{status}")]
         public async Task<ActionResult> UpdateOrderStatus(Guid orderId, OrderStatus status, [FromQuery] Guid deliveryStaffId)
         {
             await _orderService.UpdateOrderStatus(HttpContext.User, orderId, status, deliveryStaffId);

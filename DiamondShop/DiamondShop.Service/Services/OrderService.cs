@@ -34,7 +34,22 @@ public class OrderService : IOrderService
             .SingleOrDefaultAsync(predicate: a => a.Id == accountId);
         if (account == null)
         {
-            throw new NotFoundException("Invalid account!!!");
+            throw new UnauthorizedException("Invalid account!!!");
+        }
+
+        foreach (var list in createOrderRequest.ListOrder)
+        {
+            var product = await _unitOfWork.GetRepository<Product>()
+                .SingleOrDefaultAsync(predicate: p => p.Id == list.ProductId);
+            if (product == null)
+            {
+                throw new NotFoundException("Product Id " + $"{list.ProductId} is not found!!");
+            }
+
+            if (list.Quantity > product.Quantity)
+            {
+                throw new BadRequestException("Product Quantity is not enough");
+            }
         }
         var totalPrice = 0.0;
         foreach (var x in createOrderRequest.ListOrder)
@@ -137,7 +152,7 @@ public class OrderService : IOrderService
             throw new UnauthorizedException("Invalid account!!!!!");
         }
 
-        var order = await _unitOfWork.GetRepository<Order>().SingleOrDefaultAsync(predicate: x => x.Id == orderId);
+        var order = await _unitOfWork.GetRepository<Order>().SingleOrDefaultAsync(predicate: x => x.Id == orderId, include: x => x.Include(o => o.OrderDetails));
         if (order is null)
         {
             throw new NotFoundException("Order not found");
@@ -241,7 +256,7 @@ public class OrderService : IOrderService
             predicate: predicate,
             include: x => x.Include(o => o.Customer)
                 .Include(o => o.DeliveryStaff)
-                .Include(o => o.SalesStaff),
+                .Include(o => o.SalesStaff)!,
             size: size, page: page, orderBy: x => x.OrderByDescending(o => o.CreatedDate));
 
         return orders.Adapt<Paginate<GetAllOrderResponse>>();

@@ -100,7 +100,7 @@ public class ProductService : IProductService
         
         var products = await _unitOfWork.GetRepository<Product>()
             .GetPagingListAsync(predicate: ApplyProductFilter(queryProductRequest), page: page, size: size,
-                include: x => x.Include(p => p.Category).Include(p => p.Pictures));
+                include: x => x.Include(p => p.Category).Include(p => p.Pictures).Include(p => p.Diamond));
         return products.Adapt<Paginate<GetProductPagedResponse>>();
     }
 
