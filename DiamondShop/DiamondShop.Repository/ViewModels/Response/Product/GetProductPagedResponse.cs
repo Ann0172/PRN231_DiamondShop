@@ -1,4 +1,5 @@
 ﻿using DiamondShop.Repository.ViewModels.Response.Category;
+using DiamondShop.Repository.ViewModels.Response.Picture;
 
 namespace DiamondShop.Repository.ViewModels.Response.Product;
 
@@ -24,5 +25,7 @@ public class GetProductPagedResponse
 
     public string? Status { get; set; }
 
-    public GetCategoryResponse Category { get; set; } = null!;
+    public GetCategoryResponse? Category { get; set; }
+    
+    public ICollection<GetPictureResponse> Pictures { get; set; } = new List<GetPictureResponse>();
 }

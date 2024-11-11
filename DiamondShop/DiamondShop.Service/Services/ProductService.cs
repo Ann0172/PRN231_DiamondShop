@@ -7,6 +7,7 @@ using DiamondShop.Repository.Pagination;
 using DiamondShop.Repository.ViewModels.Request.Account;
 using DiamondShop.Repository.ViewModels.Request.Product;
 using DiamondShop.Repository.ViewModels.Response.Product;
+using DiamondShop.Service.Extensions;
 using DiamondShop.Service.Interfaces;
 using DiamondShop.Shared.Exceptions;
 using Mapster;
@@ -99,7 +100,7 @@ public class ProductService : IProductService
         
         var products = await _unitOfWork.GetRepository<Product>()
             .GetPagingListAsync(predicate: ApplyProductFilter(queryProductRequest), page: page, size: size,
-                include: x => x.Include(p => p.Category));
+                include: x => x.Include(p => p.Category).Include(p => p.Pictures));
         return products.Adapt<Paginate<GetProductPagedResponse>>();
     }
 
@@ -111,7 +112,7 @@ public class ProductService : IProductService
         {
             throw new NotFoundException("Product not found");
         }
-
+        
         return product.Adapt<GetProductDetailResponse>();
     }
 

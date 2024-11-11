@@ -30,17 +30,11 @@ namespace DiamondShop.API.Controllers
         }
 
         [HttpPatch("update-status-for-order/{orderId:guid}/{status}")]
-        public async Task<ActionResult> UpdateOrderStatus(Guid orderId, OrderStatus status)
+        public async Task<ActionResult> UpdateOrderStatus(Guid orderId, OrderStatus status, [FromQuery] Guid deliveryStaffId)
         {
-            await _orderService.UpdateOrderStatus(HttpContext.User, orderId, status);
+            await _orderService.UpdateOrderStatus(HttpContext.User, orderId, status, deliveryStaffId);
             return NoContent();
         }
-        // [HttpPatch("update-status-for-delivery-staff/{orderId:guid}/{status}")]
-        // public async Task<ActionResult> UpdateOrderStatusWithDeliveryStaff(Guid orderId, OrderStatusForDelivery status)
-        // {
-        //     await _orderService.UpdateOrderStatusWithDeliveryStaff(HttpContext.User, orderId, status);
-        //     return NoContent();
-        // }
         [HttpGet("success")]
         public async Task<IActionResult> Success([FromQuery] Guid orderId,[FromQuery] string status)
         {

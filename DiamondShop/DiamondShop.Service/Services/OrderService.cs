@@ -30,6 +30,12 @@ public class OrderService : IOrderService
     public async Task<GetOrderByCashResponse> CreateOrderWithCash(ClaimsPrincipal claims, CreateOrderRequest createOrderRequest)
     {
         var accountId = claims.GetAccountId();
+        var account = await _unitOfWork.GetRepository<Account>()
+            .SingleOrDefaultAsync(predicate: a => a.Id == accountId);
+        if (account == null)
+        {
+            throw new NotFoundException("Invalid account!!!");
+        }
         var totalPrice = 0.0;
         foreach (var x in createOrderRequest.ListOrder)
         {
@@ -111,8 +117,8 @@ public class OrderService : IOrderService
             var item = new ItemData(x.Product.Name, x.Quantity, (int)x.Price);
             items.Add(item);
         }
-        const string baseUrl = "https://localhost:7198/api/orders/" + "/success";
-        var url = $"{baseUrl}?&orderId={order.Id}";
+        const string baseUrl = "https://localhost:7198/api/orders" + "/success";
+        var url = $"{baseUrl}?orderId={order.Id}";
         var paymentData = new PaymentData(orderCode, (int)(order.TotalPrice), "Pay Order", items,
             url, url);
         var createPayment = await _payOs.createPaymentLink(paymentData);
@@ -122,28 +128,7 @@ public class OrderService : IOrderService
             Url = createPayment.checkoutUrl
         };
     }
-
-    // public async Task UpdateOrderStatusWithStaff(ClaimsPrincipal claimsPrincipal, Guid orderId, OrderStatus status)
-    // {
-    //     var accountId = claimsPrincipal.GetAccountId();
-    //     var account = await _unitOfWork.GetRepository<Account>().SingleOrDefaultAsync(predicate:a => a.Id == accountId);
-    //     if (account is null)
-    //     {
-    //         throw new UnauthorizedException("Invalid account!!!!!");
-    //     }
-    //     var order = await _unitOfWork.GetRepository<Order>().SingleOrDefaultAsync(predicate: x => x.Id == orderId);
-    //     order.Status = status switch
-    //     {
-    //         OrderStatus.Cancelled => OrderStatus.Cancelled.ToString(),
-    //         OrderStatus.Confirmed => OrderStatus.Confirmed.ToString(),
-    //         OrderStatus.Pending => OrderStatus.Pending.ToString(),
-    //         OrderStatus.WaitToDelivery => OrderStatus.WaitToDelivery.ToString(),
-    //         _ => order.Status
-    //     };
-    //     order.SalesStaffId = accountId;
-    //     await _unitOfWork.CommitAsync();
-    // }
-    public async Task UpdateOrderStatus(ClaimsPrincipal claimsPrincipal, Guid orderId, OrderStatus status)
+    public async Task UpdateOrderStatus(ClaimsPrincipal claimsPrincipal, Guid orderId, OrderStatus status, Guid deliveryStaffId)
     {
         var accountId = claimsPrincipal.GetAccountId();
         var account = await _unitOfWork.GetRepository<Account>().SingleOrDefaultAsync(predicate: a => a.Id == accountId);
@@ -157,6 +142,8 @@ public class OrderService : IOrderService
         {
             throw new NotFoundException("Order not found");
         }
+        var orderDetails = order.OrderDetails;
+        var products = new List<Product>();
         if (account.Role == Role.SalesStaff.ToString())
         {
             if (status != OrderStatus.Cancelled && status != OrderStatus.Confirmed &&
@@ -166,6 +153,29 @@ public class OrderService : IOrderService
             }
             order.Status = status.ToString();
             order.SalesStaffId = accountId;
+            if (order.Status == OrderStatus.WaitToDelivery.ToString())
+            {
+                var accountDelivery = await _unitOfWork.GetRepository<Account>()
+                    .SingleOrDefaultAsync(predicate: a => a.Id == deliveryStaffId && a.Role == Role.DeliveryStaff.ToString());
+                if (accountDelivery == null)
+                {
+                    throw new NotFoundException("Delivery Staff is not existed");
+                }
+
+                order.DeliveryStaffId = deliveryStaffId;
+            }
+
+            if (order.Status == OrderStatus.Confirmed.ToString())
+            {
+                foreach (var orderDetail in orderDetails)
+                {
+                    var product = await _unitOfWork.GetRepository<Product>()
+                        .SingleOrDefaultAsync(predicate: p => p.Id == orderDetail.ProductId);
+                    product.Quantity -= orderDetail.Quantity;
+                    products.Add(product);
+                }
+                _unitOfWork.GetRepository<Product>().UpdateRange(products);
+            }
         }
         else if (account.Role == Role.DeliveryStaff.ToString())
         {
@@ -181,34 +191,29 @@ public class OrderService : IOrderService
         await _unitOfWork.CommitAsync();
     }
 
-    // public async Task UpdateOrderStatusWithDeliveryStaff(ClaimsPrincipal claimsPrincipal, Guid orderId, OrderStatusForDelivery status)
-    // {
-    //     var accountId = claimsPrincipal.GetAccountId();
-    //     var account = await _unitOfWork.GetRepository<Account>().SingleOrDefaultAsync(predicate:a => a.Id == accountId);
-    //     if (account is null)
-    //     {
-    //         throw new UnauthorizedException("Invalid account!!!!!");
-    //     }
-    //     var order = await _unitOfWork.GetRepository<Order>().SingleOrDefaultAsync(predicate: x => x.Id == orderId);
-    //     order.Status = status switch
-    //     {
-    //         OrderStatusForDelivery.Deliveried => OrderStatusForDelivery.Deliveried.ToString(),
-    //         OrderStatusForDelivery.Delivering => OrderStatusForDelivery.Delivering.ToString(),
-    //         _ => order.Status
-    //     };
-    //     order.DeliveryStaffId = accountId;
-    //     await _unitOfWork.CommitAsync();
-    // }
-
     public async Task UpdateOrderStatusForPayOs(Guid orderId, OrderStatus status)
     {
-        var order = await _unitOfWork.GetRepository<Order>().SingleOrDefaultAsync(predicate: x => x.Id == orderId);
+        var order = await _unitOfWork.GetRepository<Order>().SingleOrDefaultAsync(predicate: x => x.Id == orderId, include:x => x.Include(o => o.OrderDetails));
+        var orderDetails = order.OrderDetails;
+        var products = new List<Product>();
+        
         order.Status = status switch
         {
             OrderStatus.Cancelled => OrderStatus.Cancelled.ToString(),
             OrderStatus.Confirmed => OrderStatus.Confirmed.ToString(),
             _ => order.Status
         };
+        if (order.Status == OrderStatus.Confirmed.ToString())
+        {
+            foreach (var orderDetail in orderDetails)
+            {
+                var product = await _unitOfWork.GetRepository<Product>()
+                    .SingleOrDefaultAsync(predicate: p => p.Id == orderDetail.ProductId);
+                product.Quantity -= orderDetail.Quantity;
+                products.Add(product);
+            }
+            _unitOfWork.GetRepository<Product>().UpdateRange(products);
+        }
         _unitOfWork.GetRepository<Order>().UpdateAsync(order);
         await _unitOfWork.CommitAsync();
     }
