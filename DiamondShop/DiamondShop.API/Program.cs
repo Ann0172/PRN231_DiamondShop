@@ -25,8 +25,6 @@ builder.Host.ConfigureContainer<ContainerBuilder>(containerBuilder =>
     containerBuilder.AddServicesDependency(builder.Configuration);
 });
 builder.Services.AddApiDependencies(builder.Configuration);
-
-builder.Services.AddScoped<IOrderService, OrderService>();
 //builder.ConfigureAutofacContainer();
 
 builder.Services.AddControllers().AddJsonOptions(options =>

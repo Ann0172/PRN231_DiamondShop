@@ -15,6 +15,10 @@ public partial class Order
 
     public long TotalPrice { get; set; }
 
+    public string? Name { get; set; }
+
+    public string? Address { get; set; }
+
     public Guid CustomerId { get; set; }
 
     public Guid? SalesStaffId { get; set; }

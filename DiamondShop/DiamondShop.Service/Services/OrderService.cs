@@ -64,6 +64,8 @@ public class OrderService : IOrderService
             CustomerId = accountId,
             PayMethod = Payment.CASH.ToString(),
             Status = OrderStatus.Pending.ToString(),
+            Address = createOrderRequest.Address,
+            Name = createOrderRequest.Name,
             CreatedDate = DateOnly.FromDateTime(DateTime.Now),
             TotalPrice = (long)totalPrice
         };
@@ -103,6 +105,8 @@ public class OrderService : IOrderService
             CustomerId = accountId,
             PayMethod = Payment.PAYOS.ToString(),
             Status = OrderStatus.Confirmed.ToString(),
+            Address = createOrderRequest.Address,
+            Name = createOrderRequest.Name,
             CreatedDate = DateOnly.FromDateTime(DateTime.Now),
             TotalPrice = (long)totalPrice
         };
@@ -256,7 +260,7 @@ public class OrderService : IOrderService
             predicate: predicate,
             include: x => x.Include(o => o.Customer)
                 .Include(o => o.DeliveryStaff)
-                .Include(o => o.SalesStaff)!,
+                .Include(o => o.SalesStaff),
             size: size, page: page, orderBy: x => x.OrderByDescending(o => o.CreatedDate));
 
         return orders.Adapt<Paginate<GetAllOrderResponse>>();
