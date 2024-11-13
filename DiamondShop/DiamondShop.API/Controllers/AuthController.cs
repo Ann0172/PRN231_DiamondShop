@@ -35,8 +35,20 @@ namespace DiamondShop.API.Controllers
         {
             return await _authService.GetCurrentAccount(HttpContext.User);
         }
-        
-        
+
+        [HttpPost("create-account")]
+        public async Task<ActionResult<GetAccountDetailResponse>> CreateAccount(
+            CreateAccountRequest createAccountRequest)
+        {
+            return Created(nameof(CreateAccount), await _authService.CreateAccount(createAccountRequest));
+        }
+
+        [HttpPut("update-current-account")]
+        public async Task<ActionResult> UpdateCurrentAccount(UpdateAccountRequest updateAccountRequest)
+        {
+            await _authService.UpdateAccount(HttpContext.User, updateAccountRequest);
+            return NoContent();
+        }
     }
     
 }

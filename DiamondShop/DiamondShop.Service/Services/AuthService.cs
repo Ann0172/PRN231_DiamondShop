@@ -1,5 +1,4 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
-using System.Linq.Expressions;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
@@ -7,7 +6,6 @@ using DiamondShop.Repository;
 using DiamondShop.Repository.Enums;
 using DiamondShop.Repository.Interfaces;
 using DiamondShop.Repository.Models;
-using DiamondShop.Repository.Pagination;
 using DiamondShop.Repository.ViewModels.Request.Account;
 using DiamondShop.Repository.ViewModels.Request.Auth;
 using DiamondShop.Repository.ViewModels.Response.Account;
@@ -25,11 +23,13 @@ public class AuthService : IAuthService
 {
     private readonly IUnitOfWork<Prn231DiamondShopContext> _unitOfWork;
     private readonly IConfiguration _configuration;
+    private readonly IFirebaseService _firebaseService;
 
-    public AuthService(IUnitOfWork<Prn231DiamondShopContext> unitOfWork, IConfiguration configuration)
+    public AuthService(IUnitOfWork<Prn231DiamondShopContext> unitOfWork, IConfiguration configuration, IFirebaseService firebaseService)
     {
         _unitOfWork = unitOfWork;
         _configuration = configuration;
+        _firebaseService = firebaseService;
     }
     public async Task Register(RegisterRequest registerRequest)
     {
@@ -72,8 +72,45 @@ public class AuthService : IAuthService
         return account.Adapt<GetAccountDetailResponse>();
     }
 
-    
+    public async Task<GetAccountDetailResponse> CreateAccount(CreateAccountRequest createAccountRequest)
+    {
+        var accountDb = await _unitOfWork.GetRepository<Account>()
+            .SingleOrDefaultAsync(predicate: a => a.Email == createAccountRequest.Email);
+        if (accountDb is not null)
+        {
+            throw new BadRequestException("Email is already existed");
+        }
 
+        var account = createAccountRequest.Adapt<Account>();
+        account.Password = HashPassword(createAccountRequest.Password);
+        if (createAccountRequest.Avatar != null)
+        {
+            account.AvatarUrl = await _firebaseService.UploadImageAsync(createAccountRequest.Avatar);
+        }
+
+        await _unitOfWork.GetRepository<Account>().InsertAsync(account);
+        await _unitOfWork.CommitAsync();
+        return account.Adapt<GetAccountDetailResponse>();
+    }
+
+    public async Task UpdateAccount(ClaimsPrincipal claim, UpdateAccountRequest updateAccountRequest)
+    {
+        var accountId = claim.GetAccountId();
+        var account = await _unitOfWork.GetRepository<Account>().SingleOrDefaultAsync(predicate: a => a.Id == accountId);
+        updateAccountRequest.Adapt(account);
+        if (account.AvatarUrl != null)
+        {
+            await _firebaseService.DeleteImageAsync(account.AvatarUrl);
+            account.AvatarUrl = null;
+        }
+
+        if (updateAccountRequest.Avatar != null)
+        {
+            account.AvatarUrl = await _firebaseService.UploadImageAsync(updateAccountRequest.Avatar);
+        } 
+        _unitOfWork.GetRepository<Account>().UpdateAsync(account);
+        await _unitOfWork.CommitAsync();
+    }
 
     private LoginResponse GenerateAccessToken(Guid accountId, string role)
     {

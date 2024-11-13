@@ -16,11 +16,16 @@ namespace DiamondShop.API.Controllers
         {
             _certificateService = certificateService;
         }
-        [HttpPost]
+        [HttpGet]
         public async Task<ActionResult<Paginate<GetCertificatePagedResponse>>> GetPagedCertificate([FromQuery] int page = 1,
             [FromQuery] int size = 10)
         {
             return await _certificateService.GetPagedCertificate(page, size);
+        }
+        [HttpGet("get-cerificate-by-current-account")]
+        public async Task<ActionResult<GetCertificateProductPagedResponse>> GetCertificates()
+        {
+            return await _certificateService.GetCertificateForAccount(HttpContext.User);
         }
     }
 }
