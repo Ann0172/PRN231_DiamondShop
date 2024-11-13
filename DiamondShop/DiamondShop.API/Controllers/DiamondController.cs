@@ -3,6 +3,7 @@ using DiamondShop.Repository.Pagination;
 using DiamondShop.Repository.ViewModels.Request.Diamond;
 using DiamondShop.Repository.ViewModels.Response.Diamond;
 using DiamondShop.Service.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -31,19 +32,20 @@ namespace DiamondShop.API.Controllers
             return await _diamondService.GetDiamondDetailsById(id);
         }
         [HttpPost]
-        // [Authorize(Roles = "SalesStaff, sales-staff")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult> CreateDiamond([FromForm] CreateDiamondRequest createDiamondRequest)
         {
             return Created(nameof(CreateDiamond), await _diamondService.CreateDiamond(createDiamondRequest));
         }
         [HttpPut("{id:guid}")]
-        // [Authorize(Roles = "SalesStaff, sales-staff")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult> UpdateDiamond([FromRoute] Guid id, [FromForm] UpdateDiamondRequest updateDiamondRequest)
         {
             await _diamondService.UpdateDiamond(id, updateDiamondRequest);
             return NoContent();
         }
         [HttpPatch("{diamondId:guid}/{status}")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult> ChangeStatusDiamond(Guid diamondId, DiamondStatus status)
         {
             await _diamondService.ChangStatusDiamond(diamondId, status);

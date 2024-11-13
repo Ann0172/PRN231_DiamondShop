@@ -4,6 +4,7 @@ using DiamondShop.Repository.ViewModels.Request.Auth;
 using DiamondShop.Repository.ViewModels.Response.Account;
 using DiamondShop.Repository.ViewModels.Response.Auth;
 using DiamondShop.Service.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -31,18 +32,19 @@ namespace DiamondShop.API.Controllers
             return Created(nameof(Login), await _authService.Login(loginRequest));
         }
         [HttpGet("get-current-account")]
+        [Authorize]
         public async Task<ActionResult<GetAccountDetailResponse>> GetCurrentAccount()
         {
             return await _authService.GetCurrentAccount(HttpContext.User);
         }
-
+        [Authorize(Roles = "Admin")]
         [HttpPost("create-account")]
         public async Task<ActionResult<GetAccountDetailResponse>> CreateAccount(
             CreateAccountRequest createAccountRequest)
         {
             return Created(nameof(CreateAccount), await _authService.CreateAccount(createAccountRequest));
         }
-
+        [Authorize]
         [HttpPut("update-current-account")]
         public async Task<ActionResult> UpdateCurrentAccount(UpdateAccountRequest updateAccountRequest)
         {

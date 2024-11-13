@@ -3,6 +3,7 @@ using DiamondShop.Repository.Pagination;
 using DiamondShop.Repository.ViewModels.Request.Order;
 using DiamondShop.Repository.ViewModels.Response.Order;
 using DiamondShop.Service.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DiamondShop.API.Controllers
@@ -19,16 +20,18 @@ namespace DiamondShop.API.Controllers
         }
 
         [HttpPost("cash")]
+        [Authorize(Roles = "Customer")]
         public async Task<ActionResult<GetOrderByCashResponse>> CreateOrderWithCash([FromBody]CreateOrderRequest createOrderRequest)
         {
             return Created(nameof(CreateOrderWithCash), await _orderService.CreateOrderWithCash(HttpContext.User, createOrderRequest));
         }
         [HttpPost("payos")]
+        [Authorize(Roles = "Customer")]
         public async Task<ActionResult<GetOrderByPayOsResponse>> CreateOrderWithPayOs([FromBody]CreateOrderRequest createOrderRequest)
         {
             return Created(nameof(CreateOrderWithPayOs), await _orderService.CreateOrderWithPayOs(HttpContext.User, createOrderRequest));
         }
-
+        [Authorize(Roles = "DeliveryStaff, SalesStaff")]
         [HttpPut("update-status-for-order/{orderId:guid}/{status}")]
         public async Task<ActionResult> UpdateOrderStatus(Guid orderId, OrderStatus status, [FromQuery] Guid deliveryStaffId)
         {
@@ -48,6 +51,7 @@ namespace DiamondShop.API.Controllers
         }
 
         [HttpGet("get-orders")]
+        [Authorize(Roles = "Customer, DeliveryStaff, SalesStaff")]
         public async Task<ActionResult<Paginate<GetAllOrderResponse>>> GetPagedOrder([FromQuery] OrderStatus orderStatus,
             [FromQuery] int page = 1, [FromQuery] int size = 10)
         {

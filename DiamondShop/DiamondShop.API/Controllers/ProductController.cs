@@ -3,6 +3,7 @@ using DiamondShop.Repository.Pagination;
 using DiamondShop.Repository.ViewModels.Request.Product;
 using DiamondShop.Repository.ViewModels.Response.Product;
 using DiamondShop.Service.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,13 +20,13 @@ namespace DiamondShop.API.Controllers
             _productService = productService;
         }
         [HttpPost]
-        // [Authorize(Roles = "SalesStaff, sales-staff")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult> CreateProduct([FromForm] CreateProductRequest createProductRequest)
         {
             return Created(nameof(CreateProduct), await _productService.CreateProduct(createProductRequest));
         }
         [HttpPut("{id:guid}")]
-        // [Authorize(Roles = "SalesStaff, sales-staff")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult> UpdateProduct([FromRoute] Guid id, [FromForm] UpdateProductRequest updateProductRequest)
         {
             await _productService.UpdateProduct(id, updateProductRequest);
@@ -42,6 +43,7 @@ namespace DiamondShop.API.Controllers
             return await _productService.GetProductDetailById(id);
         }
         [HttpPatch("{productId:guid}/{status}")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult> ChangeStatusProduct(Guid productId, ProductStatus status)
         {
             await _productService.UpdateProductStatus(productId, status);

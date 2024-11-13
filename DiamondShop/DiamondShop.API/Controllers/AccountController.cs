@@ -2,6 +2,7 @@ using DiamondShop.Repository.Pagination;
 using DiamondShop.Repository.ViewModels.Request.Account;
 using DiamondShop.Repository.ViewModels.Response.Account;
 using DiamondShop.Service.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,6 +19,7 @@ namespace DiamondShop.API.Controllers
             _accountService = accountService;
         }
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<Paginate<GetAccountDetailResponse>>> GetPagingAccount([FromQuery] QueryAccountRequest queryAccountRequest, [FromQuery] int page = 1,
             [FromQuery] int size = 10)
         {

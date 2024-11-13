@@ -3,6 +3,7 @@ using DiamondShop.Repository.Pagination;
 using DiamondShop.Repository.ViewModels.Request.Category;
 using DiamondShop.Repository.ViewModels.Response.Category;
 using DiamondShop.Service.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,16 +20,19 @@ namespace DiamondShop.API.Controllers
             _categoryService = categoryService;
         }
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<GetCategoryDetailResponse>> CreateCategory([FromBody] CreateCategoryRequest createCategoryRequest)
         {
             return Created(nameof(CreateCategory), await _categoryService.CreateCategory(createCategoryRequest));
         }
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<Paginate<GetCategoryDetailResponse>>> GetPagedCategories([FromQuery] int page = 1, [FromQuery] int size = 10)
         {
             return await _categoryService.GetPagedCategory(page, size);
         }
         [HttpPut("{id:guid}")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult> UpdateCategory(Guid id, [FromBody] UpdateCategoryRequest updateCategoryRequest)
         {
             await _categoryService.UpdateCategory(id, updateCategoryRequest);
@@ -39,6 +43,7 @@ namespace DiamondShop.API.Controllers
         {
             return await _categoryService.GetCategoryById(id);
         }
+        [Authorize(Roles = "Admin")]
         [HttpPatch("{id:guid}/{status}")]
         public async Task<ActionResult> ChangeStatusCategory(Guid id, CategoryStatus status)
         {
